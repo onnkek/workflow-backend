@@ -1,0 +1,511 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Planner API",
+    "description": "This API is interface for interaction with tasks, badges and notes for planner",
+    "version": "1.0.0"
+  },
+  "host": "localhost:8000",
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/tasks": {
+      "get": {
+        "description": "Get all active tasks",
+        "responses": {
+          "200": {
+            "description": "Get all tasks.",
+            "schema": {
+              "$ref": "#/definitions/Tasks"
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "Endpoint added task.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Data of task.",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "body": {
+                  "type": "string",
+                  "example": "Test task"
+                },
+                "deadline": {
+                  "type": "string",
+                  "example": "2024-03-13T16:38"
+                },
+                "link": {
+                  "type": "string",
+                  "example": "https://google.com"
+                },
+                "badges": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "number",
+                        "example": 3
+                      },
+                      "color": {
+                        "type": "number",
+                        "example": 2
+                      },
+                      "text": {
+                        "type": "string",
+                        "example": "Пробую сделать"
+                      }
+                    }
+                  }
+                }
+              },
+              "required": [
+                "body",
+                "deadline"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/tasks/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get a specific task.",
+            "schema": {
+              "$ref": "#/definitions/Task"
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "body": {
+                  "example": "any"
+                },
+                "create": {
+                  "example": "any"
+                },
+                "remove": {
+                  "example": "any"
+                },
+                "timeleft": {
+                  "example": "any"
+                },
+                "deadline": {
+                  "example": "any"
+                },
+                "link": {
+                  "example": "any"
+                },
+                "visible": {
+                  "example": "any"
+                },
+                "badges": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/notes": {
+      "get": {
+        "description": "Get all active notes",
+        "responses": {
+          "200": {
+            "description": "Get all notes.",
+            "schema": {
+              "$ref": "#/definitions/Notes"
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "Endpoint added note.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Body of note.",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "body": {
+                  "type": "string",
+                  "example": "<p>Test body</p>"
+                }
+              },
+              "required": [
+                "body"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/notes/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get a specific note.",
+            "schema": {
+              "$ref": "#/definitions/Note"
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "body": {
+                  "example": "any"
+                },
+                "create": {
+                  "example": "any"
+                },
+                "visible": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/badges": {
+      "get": {
+        "description": "Get all active badges",
+        "responses": {
+          "200": {
+            "description": "Get all badges.",
+            "schema": {
+              "$ref": "#/definitions/Badges"
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "Endpoint added badge.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Data of badge.",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "color": {
+                  "type": "number",
+                  "example": 3
+                },
+                "text": {
+                  "type": "string",
+                  "example": "WARNING"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/badges/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get a specific badge.",
+            "schema": {
+              "$ref": "#/definitions/Badge"
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "color": {
+                  "example": "any"
+                },
+                "text": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Task": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number",
+          "example": 34
+        },
+        "body": {
+          "type": "string",
+          "example": "123"
+        },
+        "create": {
+          "type": "string",
+          "example": "1690207761767"
+        },
+        "remove": {
+          "type": "string",
+          "example": ""
+        },
+        "timeleft": {
+          "type": "string",
+          "example": ""
+        },
+        "deadline": {
+          "type": "string",
+          "example": ""
+        },
+        "link": {
+          "type": "string",
+          "example": ""
+        },
+        "visible": {
+          "type": "boolean",
+          "example": false
+        },
+        "badges": {
+          "type": "array",
+          "example": [],
+          "items": {}
+        }
+      }
+    },
+    "Tasks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Task"
+      }
+    },
+    "Badge": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number",
+          "example": 3
+        },
+        "color": {
+          "type": "number",
+          "example": 2
+        },
+        "text": {
+          "type": "string",
+          "example": "Пробую сделать"
+        }
+      }
+    },
+    "Badges": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Badge"
+      }
+    },
+    "Note": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number",
+          "example": 1
+        },
+        "body": {
+          "type": "string",
+          "example": "<h1>Тут будет HTML текст заметки</h1>"
+        },
+        "create": {
+          "type": "string",
+          "example": "1690207761767"
+        },
+        "visible": {
+          "type": "boolean",
+          "example": true
+        }
+      }
+    },
+    "Notes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Note"
+      }
+    }
+  }
+}
