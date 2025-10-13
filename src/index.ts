@@ -61,6 +61,19 @@ interface BirthdayType {
   name: string
 }
 
+interface TransferType {
+  id: number
+  from: string,
+  to: string,
+  name: string
+}
+interface ExceptionType {
+  id: number
+  date: string
+  time: number
+  name: string
+}
+
 interface WeekendType {
   highlight: boolean
 }
@@ -68,6 +81,8 @@ interface WeekendType {
 interface DateType {
   vacations: VacationType[]
   holidays: HolidayType[]
+  transfers: TransferType[]
+  exceptions: ExceptionType[]
   birthdays: BirthdayType[]
   workings: WorkingType[]
   weekend: WeekendType
@@ -419,6 +434,42 @@ app.post('/settings/holidays', (req, res) => {
   }
 })
 
+app.post('/settings/transfers', (req, res) => {
+
+  if (req.body.id && req.body.from && req.body.to) {
+    const newTransfer: TransferType = {
+      "id": req.body.id,
+      "from": req.body.from,
+      "to": req.body.to,
+      "name": req.body.name
+    }
+    console.log(`[${new Date().toLocaleDateString("ru-RU", { hour: 'numeric', minute: 'numeric', second: 'numeric', day: 'numeric', year: 'numeric', month: 'numeric' })}][${req.hostname}] POST /settings/transfers`)
+    dbSettings.settings.date.transfers.push(newTransfer)
+    fs.writeFileSync(path.resolve(__dirname, settingsPath), JSON.stringify(dbSettings), 'utf-8')
+    res.status(200).send(dbSettings.settings)
+  } else {
+    res.send(400)
+  }
+})
+
+app.post('/settings/exceptions', (req, res) => {
+
+  if (req.body.id && req.body.date && req.body.time) {
+    const newException: ExceptionType = {
+      "id": req.body.id,
+      "date": req.body.date,
+      "time": req.body.time,
+      "name": req.body.name
+    }
+    console.log(`[${new Date().toLocaleDateString("ru-RU", { hour: 'numeric', minute: 'numeric', second: 'numeric', day: 'numeric', year: 'numeric', month: 'numeric' })}][${req.hostname}] POST /settings/exceptions`)
+    dbSettings.settings.date.exceptions.push(newException)
+    fs.writeFileSync(path.resolve(__dirname, settingsPath), JSON.stringify(dbSettings), 'utf-8')
+    res.status(200).send(dbSettings.settings)
+  } else {
+    res.send(400)
+  }
+})
+
 app.delete('/settings/holidays/:id', (req, res) => {
 
   const holiday = dbSettings.settings.date.holidays.find(holiday => holiday.id === Number(req.params.id))
@@ -428,6 +479,36 @@ app.delete('/settings/holidays/:id', (req, res) => {
     fs.writeFileSync(path.resolve(__dirname, settingsPath), JSON.stringify(dbSettings), 'utf-8')
     res.status(200).send(dbSettings.settings)
     console.log(`[${new Date().toLocaleDateString("ru-RU", { hour: 'numeric', minute: 'numeric', second: 'numeric', day: 'numeric', year: 'numeric', month: 'numeric' })}][${req.hostname}] DELETE /settings/holidays/${req.params.id}`)
+  } else {
+    res.send(404)
+  }
+
+})
+
+app.delete('/settings/transfers/:id', (req, res) => {
+
+  const transfer = dbSettings.settings.date.transfers.find(transfer => transfer.id === Number(req.params.id))
+  if (transfer) {
+    const index = dbSettings.settings.date.transfers.indexOf(transfer)
+    dbSettings.settings.date.transfers.splice(index, 1);
+    fs.writeFileSync(path.resolve(__dirname, settingsPath), JSON.stringify(dbSettings), 'utf-8')
+    res.status(200).send(dbSettings.settings)
+    console.log(`[${new Date().toLocaleDateString("ru-RU", { hour: 'numeric', minute: 'numeric', second: 'numeric', day: 'numeric', year: 'numeric', month: 'numeric' })}][${req.hostname}] DELETE /settings/transfers/${req.params.id}`)
+  } else {
+    res.send(404)
+  }
+
+})
+
+app.delete('/settings/exceptions/:id', (req, res) => {
+
+  const exception = dbSettings.settings.date.exceptions.find(exception => exception.id === Number(req.params.id))
+  if (exception) {
+    const index = dbSettings.settings.date.exceptions.indexOf(exception)
+    dbSettings.settings.date.exceptions.splice(index, 1);
+    fs.writeFileSync(path.resolve(__dirname, settingsPath), JSON.stringify(dbSettings), 'utf-8')
+    res.status(200).send(dbSettings.settings)
+    console.log(`[${new Date().toLocaleDateString("ru-RU", { hour: 'numeric', minute: 'numeric', second: 'numeric', day: 'numeric', year: 'numeric', month: 'numeric' })}][${req.hostname}] DELETE /settings/exceptions/${req.params.id}`)
   } else {
     res.send(404)
   }
