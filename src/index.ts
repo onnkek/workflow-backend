@@ -117,7 +117,7 @@ const app = express()
 const port = 8000
 const swaggerFile = JSON.parse(fs.readFileSync('./swagger/output.json').toString())
 
-
+const authPath = 'db/auth.json'
 const tasksPath = 'db/tasks.json'
 const notesPath = 'db/notes.json'
 const badgesPath = 'db/badges.json'
@@ -130,6 +130,8 @@ const dbNotes: DBNotesType = JSON.parse(fs.readFileSync(path.resolve(__dirname, 
 const dbBadges: DBBadgesType = JSON.parse(fs.readFileSync(path.resolve(__dirname, badgesPath), 'utf-8'))
 const dbSettings: DBSettingsType = JSON.parse(fs.readFileSync(path.resolve(__dirname, settingsPath), 'utf-8'))
 const dbWidgets: DBWidgetsType = JSON.parse(fs.readFileSync(path.resolve(__dirname, widgetsPath), 'utf-8'))
+
+const authData = JSON.parse(fs.readFileSync(path.resolve(__dirname, authPath), 'utf-8'))
 
 app.use(cors());
 app.use('/api', swaggerUi.serve, swaggerUi.setup(swaggerFile))
@@ -252,7 +254,21 @@ app.put('/tasks/:id', (req, res) => {
 })
 
 
-
+// app.post('/auth', (req, res) => {
+//   const { password } = req.body;
+//   if (!password) {
+//     return res.send(400)
+//   }
+//   // const match = bcrypt.compare(password, authData.password);
+//   const match = password === authData.password;
+//   if (!match) {
+//     return res.send(401)
+//   }
+//   // const token = generateToken();
+//   // activeTokens.set(token, Date.now());
+//   res.send(200)
+//   // console.log(`[${new Date().toLocaleDateString("ru-RU", { hour: 'numeric', minute: 'numeric', second: 'numeric', day: 'numeric', year: 'numeric', month: 'numeric' })}][${req.hostname}] GET /notes`)
+// })
 
 
 app.get('/notes', (req, res) => {
@@ -291,6 +307,19 @@ app.get('/badges/:id', (req, res) => {
   }
 
 
+})
+
+app.post('/auth', (req, res) => {
+  const { password } = req.body;
+  if (!password) {
+    res.status(400).json({ error: "Empty password" })
+  }
+  const match = password === authData.password;
+  if (!match) {
+    res.status(400).json({ error: "Invalid password" })
+  } else {
+    res.status(200).json({ error: "Success" })
+  }
 })
 
 app.post('/badges', (req, res) => {
