@@ -1,8 +1,9 @@
-import express from 'express'
+import express, { Request, Response } from 'express'
 import swaggerUi from 'swagger-ui-express'
 import fs from 'fs'
 import path from 'path'
 import cors from 'cors'
+import * as crypto from "crypto";
 
 interface NoteType {
   uid: number,
@@ -117,7 +118,7 @@ const app = express()
 const port = 8000
 const swaggerFile = JSON.parse(fs.readFileSync('./swagger/output.json').toString())
 
-const authPath = 'db/auth.json'
+const authPath = 'auth.json'
 const tasksPath = 'db/tasks.json'
 const notesPath = 'db/notes.json'
 const badgesPath = 'db/badges.json'
@@ -254,22 +255,6 @@ app.put('/tasks/:id', (req, res) => {
 })
 
 
-// app.post('/auth', (req, res) => {
-//   const { password } = req.body;
-//   if (!password) {
-//     return res.send(400)
-//   }
-//   // const match = bcrypt.compare(password, authData.password);
-//   const match = password === authData.password;
-//   if (!match) {
-//     return res.send(401)
-//   }
-//   // const token = generateToken();
-//   // activeTokens.set(token, Date.now());
-//   res.send(200)
-//   // console.log(`[${new Date().toLocaleDateString("ru-RU", { hour: 'numeric', minute: 'numeric', second: 'numeric', day: 'numeric', year: 'numeric', month: 'numeric' })}][${req.hostname}] GET /notes`)
-// })
-
 
 app.get('/notes', (req, res) => {
   console.log(`[${new Date().toLocaleDateString("ru-RU", { hour: 'numeric', minute: 'numeric', second: 'numeric', day: 'numeric', year: 'numeric', month: 'numeric' })}][${req.hostname}] GET /notes`)
@@ -309,17 +294,46 @@ app.get('/badges/:id', (req, res) => {
 
 })
 
+function verifyPassword(password: string, stored: string): boolean {
+  const [saltHex, derivedHex] = stored.split(":");
+  if (!saltHex || !derivedHex) {
+    return false;
+  }
+  const salt = Buffer.from(saltHex, "hex");
+  const derivedStored = Buffer.from(derivedHex, "hex");
+
+  const derivedInput = crypto.scryptSync(password, salt, derivedStored.length) as Buffer;
+  return crypto.timingSafeEqual(derivedStored, derivedInput);
+}
+
 app.post('/auth', (req, res) => {
   const { password } = req.body;
-  if (!password) {
-    res.status(400).json({ error: "Empty password" })
+  if (typeof (password) !== "string" || password.length === 0) {
+    res.status(400).json({ error: "Password required" });
+    return;
   }
-  const match = password === authData.password;
-  if (!match) {
-    res.status(400).json({ error: "Invalid password" })
-  } else {
-    res.status(200).json({ error: "Success" })
+
+  let authData: { passwordHash: string };
+  try {
+    const raw = fs.readFileSync(path.resolve(__dirname, authPath), "utf-8");
+    authData = JSON.parse(raw);
+  } catch (err) {
+    console.error("Cannot read auth.json:", err);
+    res.status(500).json({ error: "Server auth config missing" });
+    return;
   }
+
+  const isValid = verifyPassword(password, authData!.passwordHash);
+  if (!isValid) {
+    console.warn("Invalid password attempt");
+    res.status(401).json({ success: false, message: "Invalid password" });
+    return;
+  }
+
+  console.log("Auth success");
+  res.status(200).json({ success: true, message: "Authenticated" });
+  return;
+
 })
 
 app.post('/badges', (req, res) => {
