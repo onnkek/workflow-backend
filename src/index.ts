@@ -113,6 +113,18 @@ interface DBWidgetsType {
   widgets: WidgetType[]
 }
 
+interface Vacation {
+  start: string,
+  length: number
+}
+
+interface PersonVacation {
+  id: number,
+  name: string,
+  service: string,
+  vacations: Vacation[]
+}
+
 const app = express()
 
 const port = 8000
@@ -124,6 +136,7 @@ const notesPath = 'db/notes.json'
 const badgesPath = 'db/badges.json'
 const settingsPath = 'db/settings.json'
 const widgetsPath = 'db/widgets.json'
+const vacationsPath = 'db/vacations.csv'
 
 
 const dbTasks: DBTasksType = JSON.parse(fs.readFileSync(path.resolve(__dirname, tasksPath), 'utf-8'))
@@ -131,14 +144,126 @@ const dbNotes: DBNotesType = JSON.parse(fs.readFileSync(path.resolve(__dirname, 
 const dbBadges: DBBadgesType = JSON.parse(fs.readFileSync(path.resolve(__dirname, badgesPath), 'utf-8'))
 const dbSettings: DBSettingsType = JSON.parse(fs.readFileSync(path.resolve(__dirname, settingsPath), 'utf-8'))
 const dbWidgets: DBWidgetsType = JSON.parse(fs.readFileSync(path.resolve(__dirname, widgetsPath), 'utf-8'))
+const dbVacations: string = fs.readFileSync(path.resolve(__dirname, vacationsPath), 'utf-8')
 
 const authData = JSON.parse(fs.readFileSync(path.resolve(__dirname, authPath), 'utf-8'))
+
+
 
 app.use(cors());
 app.use('/api', swaggerUi.serve, swaggerUi.setup(swaggerFile))
 app.use(express.json());
 
 
+const parseLengthCell = (raw: string): number => {
+  if (!raw) {
+    return 0;
+  }
+  const cleaned = raw.replace(/,/g, '+').trim();
+
+  const matches = cleaned.match(/\d+/g);
+  if (!matches) {
+    return 0;
+  }
+  return matches.map(Number).reduce((sum, n) => sum + n, 0);
+}
+
+const parceDate = (raw: string): Date | null => {
+  const parts = raw.split(".");
+  if (parts.length !== 3) {
+    return null;
+  }
+  const [day, month, year] = parts.map(Number);
+  if (!day || !month || !year) {
+    return null;
+  }
+  return new Date(year, month - 1, day);
+
+}
+
+const formatName = (fullName: string): string => {
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length === 0) {
+    return fullName;
+  }
+  const lastName = parts[0];
+  const initials = parts.slice(1).map((n) => n[0].toUpperCase() + '.').join('');
+  return `${lastName} ${initials}`;
+}
+
+const parseCSV = (): PersonVacation[] => {
+  const text = fs.readFileSync(path.resolve(__dirname, vacationsPath), 'utf-8');
+
+  const lines = text
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+  if (lines.length === 0) {
+    return [];
+  }
+  const headerIndex = lines.findIndex((line) => line.includes('ФИО'));
+  if (headerIndex === -1) {
+    throw new Error("Can't find header's row.")
+  }
+  const headers = lines[headerIndex]
+    .split(';')
+    .map((h) => h.trim())
+    .filter((h) => h.length > 0);
+  const dataLines = lines.slice(headerIndex + 1);
+  const data: PersonVacation[] = [];
+  for (const line of dataLines) {
+    if (!line.includes(';')) {
+      continue;
+    }
+    const cols = line.split(';').map((c) => c.trim());
+    const row: Record<string, string> = {};
+    headers.forEach((h, idx) => {
+      row[h] = cols[idx] ?? "";
+    });
+
+    const name = row["ФИО"];
+    const service = row["Служба"];
+
+    if (!name || !service) {
+      continue;
+    }
+    const vacations: Vacation[] = [];
+    const id = Math.random();
+    let i = 1;
+    while (row[`Дата начала_${i}`]) {
+      const start = row[`Дата начала_${i}`];
+      const lengthStr = row[`Кол-во_${i}`] || "";
+      const length = parseLengthCell(lengthStr);
+      const startDate = parceDate(start);
+
+      if (start && length > 0) {
+        vacations.push({ start: String(startDate), length });
+      }
+      i++;
+    }
+    data.push({ id, name, service, vacations });
+  }
+  return data;
+}
+
+app.get('/vacations', (req, res) => {
+  // #swagger.description = 'Get all active tasks'
+  /* #swagger.responses[200] = {
+           description: 'Get all tasks.',
+           schema: { $ref: '#/definitions/Tasks' }
+   } */
+  console.log(`[${new Date().toLocaleDateString("ru-RU", { hour: 'numeric', minute: 'numeric', second: 'numeric', day: 'numeric', year: 'numeric', month: 'numeric' })}][${req.host}] GET /vacations`)
+
+  try {
+    const data = parseCSV();
+    res.send(data)
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error reading CSV" });
+  }
+
+
+})
 
 
 app.get('/tasks', (req, res) => {
